@@ -1,0 +1,89 @@
+{
+  "rabbit_version": "3.11.0",
+  "rabbitmq_version": "3.11.0",
+  "product_name": "RabbitMQ",
+  "product_version": "3.11.0",
+  "users": [
+    {
+      "name": "guest",
+      "password_hash": "Ej3/0URCLGTjr1TScrdUOG/O0heoXaLVOd93gtSB1M7RWqNW",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [
+        "administrator"
+      ],
+      "limits": {}
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "topic_permissions": [],
+  "parameters": [],
+  "global_parameters": [
+    {
+      "name": "internal_cluster_id",
+      "value": "rabbitmq-cluster-id-TFxprYOe5vinxR9XJlHq3w"
+    }
+  ],
+  "policies": [],
+  "queues": [
+    {
+      "name": "order1.fanout",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "order2.fanout",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "order.fanout",
+      "vhost": "/",
+      "type": "fanout",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "order.fanout",
+      "vhost": "/",
+      "destination": "order1.fanout",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {}
+    },
+    {
+      "source": "order.fanout",
+      "vhost": "/",
+      "destination": "order2.fanout",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {}
+    }
+  ]
+}

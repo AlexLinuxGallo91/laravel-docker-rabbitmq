@@ -1,0 +1,104 @@
+version: "3.9"
+
+services:
+
+  # LARAVEL PRODUCER
+  php-fpm-producer:
+    image: php-fpm-laravel
+    build: 
+      context: ./docker/php-fpm
+      dockerfile: Dockerfile
+    container_name: php-fpm-laravel-producer
+    restart: unless-stopped
+    volumes:
+      - ./producer:/var/www
+    depends_on:
+      - db
+      - rabbitmq
+    dns:
+      - 8.8.8.8
+    networks:
+      - rabbitmq-laravel-net
+
+  nginx-producer:
+    image: nginx:alpine
+    container_name: nginx-laravel-producer
+    restart: unless-stopped
+    ports:
+      - 80:80
+    volumes:
+      - ./producer:/var/www
+      - ./docker/nginx-producer:/etc/nginx/conf.d/
+    depends_on:
+      - db
+      - rabbitmq
+      - php-fpm-producer
+    networks:
+      - rabbitmq-laravel-net
+  
+  # LARAVEL CONSUMER
+  php-fpm-consumer:
+    image: php-fpm-laravel
+    build: 
+      context: ./docker/php-fpm
+      dockerfile: Dockerfile
+    container_name: php-fpm-laravel-consumer
+    restart: unless-stopped
+    volumes:
+      - ./consumer:/var/www
+    depends_on:
+      - db
+      - rabbitmq
+    dns:
+      - 8.8.8.8
+    networks:
+      - rabbitmq-laravel-net
+
+  nginx-consumer:
+    image: nginx:alpine
+    container_name: nginx-laravel-consumer
+    restart: unless-stopped
+    ports:
+      - 81:80
+    volumes:
+      - ./consumer:/var/www
+      - ./docker/nginx-consumer:/etc/nginx/conf.d/
+    depends_on:
+      - db
+      - rabbitmq
+      - php-fpm-consumer
+    networks:
+      - rabbitmq-laravel-net
+
+  db:
+    image: mysql:8.0.30
+    container_name: db-mysql-laravel
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+    ports:
+      - 3306:3306
+    networks:
+      - rabbitmq-laravel-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ${CONTAINER_NAME_RABBITMQ}
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: unless-stopped
+    # volumes:
+    #   - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    #   - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    networks:
+      - rabbitmq-laravel-net
+
+networks:
+  rabbitmq-laravel-net:
+    driver: bridge
